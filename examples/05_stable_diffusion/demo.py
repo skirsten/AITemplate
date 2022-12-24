@@ -30,7 +30,7 @@ from pipeline_stable_diffusion_ait import StableDiffusionAITPipeline
 )
 def run(token, width, height, prompt, benchmark):
 
-    model_id = "stabilityai/stable-diffusion-2"
+    model_id = "stabilityai/stable-diffusion-2-1"
     scheduler = EulerDiscreteScheduler.from_pretrained(model_id, subfolder="scheduler")
 
     pipe = StableDiffusionAITPipeline.from_pretrained(
