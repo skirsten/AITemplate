@@ -63,7 +63,7 @@ def benchmark_unet(
         print("Error!! Cannot find compiled module for UNet2DConditionModel.")
         exit(-1)
 
-    for k, v in load_file("unet.safetensors").items():
+    for k, v in load_file("unet.safetensors", device="cuda").items():
         exe_module.set_constant_with_tensor(k, v)
 
     # run PT unet model
@@ -141,7 +141,7 @@ def benchmark_clip(
         print("Error!! Cannot find compiled module for CLIPTextModel.")
         exit(-1)
 
-    for k, v in load_file("clip.safetensors").items():
+    for k, v in load_file("clip.safetensors", device="cuda").items():
         exe_module.set_constant_with_tensor(k, v)
 
     # run PT clip
@@ -216,7 +216,7 @@ def benchmark_vae(batch_size=1, height=64, width=64, benchmark_pt=False, verify=
         print("Error!! Cannot find compiled module for AutoencoderKL.")
         exit(-1)
 
-    for k, v in load_file("vae.safetensors").items():
+    for k, v in load_file("vae.safetensors", device="cuda").items():
         exe_module.set_constant_with_tensor(k, v)
 
     # run PT vae

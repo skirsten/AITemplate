@@ -103,19 +103,19 @@ class StableDiffusionAITPipeline(StableDiffusionPipeline):
         self.clip_ait_exe = self.init_ait_module(
             model_name="CLIPTextModel", workdir=workdir
         )
-        for k, v in load_file("clip.safetensors").items():
+        for k, v in load_file("clip.safetensors", device="cuda").items():
             self.clip_ait_exe.set_constant_with_tensor(k, v)
 
         self.unet_ait_exe = self.init_ait_module(
             model_name="UNet2DConditionModel", workdir=workdir
         )
-        for k, v in load_file("unet.safetensors").items():
+        for k, v in load_file("unet.safetensors", device="cuda").items():
             self.unet_ait_exe.set_constant_with_tensor(k, v)
 
         self.vae_ait_exe = self.init_ait_module(
             model_name="AutoencoderKL", workdir=workdir
         )
-        for k, v in load_file("vae.safetensors").items():
+        for k, v in load_file("vae.safetensors", device="cuda").items():
             self.vae_ait_exe.set_constant_with_tensor(k, v)
 
     def init_ait_module(
