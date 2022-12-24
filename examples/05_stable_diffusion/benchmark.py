@@ -23,6 +23,7 @@ from aitemplate.compiler import Model
 from aitemplate.testing import detect_target
 from aitemplate.testing.benchmark_pt import benchmark_torch_function
 from diffusers import StableDiffusionPipeline
+from safetensors.torch import load_file
 
 from torch import autocast
 from transformers import CLIPTokenizer
@@ -61,6 +62,9 @@ def benchmark_unet(
     if exe_module is None:
         print("Error!! Cannot find compiled module for UNet2DConditionModel.")
         exit(-1)
+
+    for k, v in load_file("unet.safetensors").items():
+        exe_module.set_constant_with_tensor(k, v)
 
     # run PT unet model
     pt_mod = pipe.unet
@@ -137,6 +141,9 @@ def benchmark_clip(
         print("Error!! Cannot find compiled module for CLIPTextModel.")
         exit(-1)
 
+    for k, v in load_file("clip.safetensors").items():
+        exe_module.set_constant_with_tensor(k, v)
+
     # run PT clip
     pt_mod = pipe.text_encoder
     pt_mod = pt_mod.eval()
@@ -208,6 +215,9 @@ def benchmark_vae(batch_size=1, height=64, width=64, benchmark_pt=False, verify=
     if exe_module is None:
         print("Error!! Cannot find compiled module for AutoencoderKL.")
         exit(-1)
+
+    for k, v in load_file("vae.safetensors").items():
+        exe_module.set_constant_with_tensor(k, v)
 
     # run PT vae
     pt_vae = pipe.vae
