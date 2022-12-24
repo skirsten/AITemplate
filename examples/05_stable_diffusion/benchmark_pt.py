@@ -21,17 +21,15 @@ from diffusers import StableDiffusionPipeline
 
 
 @click.command()
-@click.option("--token", default="", help="access token")
 @click.option("--prompt", default="A vision of paradise, Unreal Engine", help="prompt")
 @click.option(
     "--benchmark", type=bool, default=False, help="run stable diffusion e2e benchmark"
 )
-def run(token, prompt, benchmark):
+def run(prompt, benchmark):
     pipe = StableDiffusionPipeline.from_pretrained(
         "stabilityai/stable-diffusion-2",
         revision="fp16",
         torch_dtype=torch.float16,
-        use_auth_token=token,
     ).to("cuda")
 
     with torch.autocast("cuda"):

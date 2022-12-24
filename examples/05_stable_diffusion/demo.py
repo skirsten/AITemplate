@@ -21,14 +21,13 @@ from pipeline_stable_diffusion_ait import StableDiffusionAITPipeline
 
 
 @click.command()
-@click.option("--token", default="", help="access token")
 @click.option("--width", default=512, help="Width of generated image")
 @click.option("--height", default=512, help="Height of generated image")
 @click.option("--prompt", default="A vision of paradise, Unreal Engine", help="prompt")
 @click.option(
     "--benchmark", type=bool, default=False, help="run stable diffusion e2e benchmark"
 )
-def run(token, width, height, prompt, benchmark):
+def run(width, height, prompt, benchmark):
 
     model_id = "stabilityai/stable-diffusion-2-1"
     scheduler = EulerDiscreteScheduler.from_pretrained(model_id, subfolder="scheduler")
@@ -38,7 +37,6 @@ def run(token, width, height, prompt, benchmark):
         scheduler=scheduler,
         revision="fp16",
         torch_dtype=torch.float16,
-        use_auth_token=token,
     ).to("cuda")
 
     with torch.autocast("cuda"):

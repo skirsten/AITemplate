@@ -24,7 +24,6 @@ from pipeline_stable_diffusion_img2img_ait import StableDiffusionImg2ImgAITPipel
 
 
 @click.command()
-@click.option("--token", default="", help="access token")
 @click.option("--width", default=512, help="Width of generated image")
 @click.option("--height", default=512, help="Height of generated image")
 @click.option(
@@ -33,7 +32,7 @@ from pipeline_stable_diffusion_img2img_ait import StableDiffusionImg2ImgAITPipel
 @click.option(
     "--benchmark", type=bool, default=False, help="run stable diffusion e2e benchmark"
 )
-def run(token, width, height, prompt, benchmark):
+def run(width, height, prompt, benchmark):
 
     # load the pipeline
     device = "cuda"
@@ -42,7 +41,6 @@ def run(token, width, height, prompt, benchmark):
         model_id_or_path,
         revision="fp16",
         torch_dtype=torch.float16,
-        use_auth_token=token,
     )
     pipe = pipe.to(device)
 

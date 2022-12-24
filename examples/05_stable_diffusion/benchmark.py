@@ -29,7 +29,6 @@ from transformers import CLIPTokenizer
 
 USE_CUDA = detect_target().name() == "cuda"
 
-access_token = True
 pipe = None
 
 
@@ -269,25 +268,21 @@ def benchmark_vae(batch_size=1, height=64, width=64, benchmark_pt=False, verify=
 
 
 @click.command()
-@click.option("--token", default="", help="access token")
 @click.option("--batch-size", default=1, help="batch size")
 @click.option("--verify", type=bool, default=False, help="verify correctness")
 @click.option("--benchmark-pt", type=bool, default=False, help="run pt benchmark")
-def benchmark_diffusers(token, batch_size, verify, benchmark_pt):
+def benchmark_diffusers(batch_size, verify, benchmark_pt):
     assert batch_size == 1, "batch size must be 1 for submodule verification"
     logging.getLogger().setLevel(logging.INFO)
     np.random.seed(0)
     torch.manual_seed(4896)
 
-    global access_token, pipe
-    if token != "":
-        access_token = token
+    global pipe
 
     pipe = StableDiffusionPipeline.from_pretrained(
         "stabilityai/stable-diffusion-2-1",
         revision="fp16",
         torch_dtype=torch.float16,
-        use_auth_token=access_token,
     ).to("cuda")
 
     # CLIP
