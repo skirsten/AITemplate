@@ -16,7 +16,7 @@ import click
 import torch
 
 from aitemplate.testing.benchmark_pt import benchmark_torch_function
-from diffusers import EulerDiscreteScheduler
+from diffusers import DPMSolverMultistepScheduler
 from pipeline_stable_diffusion_ait import StableDiffusionAITPipeline
 
 
@@ -30,7 +30,9 @@ from pipeline_stable_diffusion_ait import StableDiffusionAITPipeline
 def run(width, height, prompt, benchmark):
 
     model_id = "stabilityai/stable-diffusion-2-1"
-    scheduler = EulerDiscreteScheduler.from_pretrained(model_id, subfolder="scheduler")
+    scheduler = DPMSolverMultistepScheduler.from_pretrained(
+        model_id, subfolder="scheduler"
+    )
 
     pipe = StableDiffusionAITPipeline.from_pretrained(
         model_id,
