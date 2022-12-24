@@ -20,6 +20,7 @@ from typing import List, Optional, Union
 
 import torch
 from aitemplate.compiler import Model
+from safetensors.torch import load_file
 
 from diffusers import (
     AutoencoderKL,
@@ -102,12 +103,20 @@ class StableDiffusionAITPipeline(StableDiffusionPipeline):
         self.clip_ait_exe = self.init_ait_module(
             model_name="CLIPTextModel", workdir=workdir
         )
+        for k, v in load_file("clip.safetensors").items():
+            self.clip_ait_exe.set_constant_with_tensor(k, v)
+
         self.unet_ait_exe = self.init_ait_module(
             model_name="UNet2DConditionModel", workdir=workdir
         )
+        for k, v in load_file("unet.safetensors").items():
+            self.unet_ait_exe.set_constant_with_tensor(k, v)
+
         self.vae_ait_exe = self.init_ait_module(
             model_name="AutoencoderKL", workdir=workdir
         )
+        for k, v in load_file("vae.safetensors").items():
+            self.vae_ait_exe.set_constant_with_tensor(k, v)
 
     def init_ait_module(
         self,

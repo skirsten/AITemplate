@@ -24,6 +24,7 @@ from aitemplate.compiler import compile_model
 from aitemplate.frontend import Tensor
 from aitemplate.testing import detect_target
 from diffusers import StableDiffusionPipeline
+from safetensors.torch import save_file
 
 from modeling.clip import CLIPTextTransformer as ait_CLIPTextTransformer
 
@@ -196,6 +197,8 @@ def compile_unet(
     pt_mod = pt_mod.eval()
     params_ait = map_unet_params(pt_mod, dim)
 
+    save_file(params_ait, "unet.safetensors")
+
     latent_model_input_ait = Tensor(
         [batch_size, hh, ww, 4], name="input0", is_input=True
     )
@@ -210,7 +213,7 @@ def compile_unet(
     target = detect_target(
         use_fp16_acc=use_fp16_acc, convert_conv_to_gemm=convert_conv_to_gemm
     )
-    compile_model(Y, target, "./tmp", "UNet2DConditionModel", constants=params_ait)
+    compile_model(Y, target, "./tmp", "UNet2DConditionModel")
 
 
 def compile_clip(
@@ -240,6 +243,8 @@ def compile_clip(
     pt_mod = pt_mod.eval()
     params_ait = map_clip_params(pt_mod, batch_size, seqlen, depth)
 
+    save_file(params_ait, "clip.safetensors")
+
     input_ids_ait = Tensor(
         [batch_size, seqlen], name="input0", dtype="int64", is_input=True
     )
@@ -252,7 +257,7 @@ def compile_clip(
     target = detect_target(
         use_fp16_acc=use_fp16_acc, convert_conv_to_gemm=convert_conv_to_gemm
     )
-    compile_model(Y, target, "./tmp", "CLIPTextModel", constants=params_ait)
+    compile_model(Y, target, "./tmp", "CLIPTextModel")
 
 
 def compile_vae(
@@ -303,6 +308,8 @@ def compile_vae(
     pt_mod = pt_mod.eval()
     params_ait = map_vae_params(ait_vae, pt_mod, batch_size, height * width)
 
+    save_file(params_ait, "vae.safetensors")
+
     Y = ait_vae.decode(ait_input)
     mark_output(Y)
     target = detect_target(
@@ -313,7 +320,6 @@ def compile_vae(
         target,
         "./tmp",
         "AutoencoderKL",
-        constants=params_ait,
     )
 
 
