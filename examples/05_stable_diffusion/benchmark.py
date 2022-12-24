@@ -106,7 +106,7 @@ def benchmark_unet(
     exe_module.run_with_tensors(inputs, ys)
 
     # verification
-    y_transpose = ys[0].permute((0, 3, 1, 2))
+    y_transpose = torch.permute(ys[0], (0, 3, 1, 2))
 
     if verify:
         eps = 1e-1
