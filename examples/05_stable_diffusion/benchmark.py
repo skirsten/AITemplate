@@ -25,7 +25,6 @@ from aitemplate.testing.benchmark_pt import benchmark_torch_function
 from diffusers import StableDiffusionPipeline
 from safetensors.torch import load_file
 
-from torch import autocast
 from transformers import CLIPTokenizer
 
 USE_CUDA = detect_target().name() == "cuda"
@@ -48,6 +47,7 @@ def mark_output(y):
         print("AIT output_{} shape: {}".format(i, y_shape))
 
 
+@torch.inference_mode()
 def benchmark_unet(
     batch_size=2,
     hh=64,
@@ -68,26 +68,24 @@ def benchmark_unet(
 
     # run PT unet model
     pt_mod = pipe.unet
-    pt_mod = pt_mod.eval()
 
     latent_model_input_pt = torch.randn(batch_size, 4, hh, ww).cuda().half()
     text_embeddings_pt = torch.randn(batch_size, 64, hidden_size).cuda().half()
     timesteps_pt = torch.Tensor([1, 1]).cuda().half()
 
-    with autocast("cuda"):
-        pt_ys = pt_mod(
-            latent_model_input_pt,
-            timesteps_pt,
-            encoder_hidden_states=text_embeddings_pt,
-        ).sample
+    pt_ys = pt_mod(
+        latent_model_input_pt,
+        timesteps_pt,
+        encoder_hidden_states=text_embeddings_pt,
+    ).sample
 
-        # PT benchmark
-        if benchmark_pt:
-            args = (latent_model_input_pt, 1, text_embeddings_pt)
-            pt_time = benchmark_torch_function(100, pt_mod, *args)
-            print(f"PT batch_size: {batch_size}, {pt_time} ms")
-            with open("sd_pt_benchmark.txt", "a") as f:
-                f.write(f"unet batch_size: {batch_size}, latency: {pt_time} ms\n")
+    # PT benchmark
+    if benchmark_pt:
+        args = (latent_model_input_pt, 1, text_embeddings_pt)
+        pt_time = benchmark_torch_function(100, pt_mod, *args)
+        print(f"PT batch_size: {batch_size}, {pt_time} ms")
+        with open("sd_pt_benchmark.txt", "a") as f:
+            f.write(f"unet batch_size: {batch_size}, latency: {pt_time} ms\n")
 
     print("pt output:", pt_ys.shape)
 
@@ -127,6 +125,7 @@ def benchmark_unet(
         f.write(f"unet batch_size: {batch_size}, latency: {t} ms\n")
 
 
+@torch.inference_mode()
 def benchmark_clip(
     batch_size=1,
     seqlen=64,
@@ -146,7 +145,6 @@ def benchmark_clip(
 
     # run PT clip
     pt_mod = pipe.text_encoder
-    pt_mod = pt_mod.eval()
 
     tokenizer = CLIPTokenizer.from_pretrained(version)
     text_input = tokenizer(
@@ -207,6 +205,7 @@ def benchmark_clip(
         f.write(f"clip batch_size: {batch_size}, latency: {t} ms\n")
 
 
+@torch.inference_mode()
 def benchmark_vae(batch_size=1, height=64, width=64, benchmark_pt=False, verify=False):
 
     latent_channels = 4
@@ -221,21 +220,20 @@ def benchmark_vae(batch_size=1, height=64, width=64, benchmark_pt=False, verify=
 
     # run PT vae
     pt_vae = pipe.vae
-    pt_vae.eval()
 
     pt_input = torch.rand([batch_size, latent_channels, height, width]).cuda().half()
     print("pt_input shape", pt_input.shape)
-    with autocast("cuda"):
-        pt_output = pt_vae.decode(pt_input).sample
-        pt_output = pt_output.half()
 
-        # PT benchmark
-        if benchmark_pt:
-            args = (pt_input,)
-            pt_time = benchmark_torch_function(100, pt_vae.decode, *args)
-            print(f"PT batch_size: {batch_size}, {pt_time} ms")
-            with open("sd_pt_benchmark.txt", "a") as f:
-                f.write(f"vae batch_size: {batch_size}, latency: {pt_time} ms\n")
+    pt_output = pt_vae.decode(pt_input).sample
+    pt_output = pt_output.half()
+
+    # PT benchmark
+    if benchmark_pt:
+        args = (pt_input,)
+        pt_time = benchmark_torch_function(100, pt_vae.decode, *args)
+        print(f"PT batch_size: {batch_size}, {pt_time} ms")
+        with open("sd_pt_benchmark.txt", "a") as f:
+            f.write(f"vae batch_size: {batch_size}, latency: {pt_time} ms\n")
 
     # run AIT vae
     y = (
