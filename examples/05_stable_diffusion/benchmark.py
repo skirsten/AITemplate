@@ -297,10 +297,10 @@ def benchmark_diffusers(batch_size, verify, benchmark_pt):
 
     # CLIP
     benchmark_clip(batch_size=batch_size, benchmark_pt=benchmark_pt, verify=verify)
-    # UNet
-    benchmark_unet(batch_size=batch_size * 2, benchmark_pt=benchmark_pt, verify=verify)
     # VAE
     benchmark_vae(batch_size=batch_size, benchmark_pt=benchmark_pt, verify=verify)
+    # UNet
+    benchmark_unet(batch_size=batch_size * 2, benchmark_pt=benchmark_pt, verify=verify)
 
 
 if __name__ == "__main__":
