@@ -221,7 +221,6 @@ def benchmark_vae(batch_size=1, height=64, width=64, benchmark_pt=False, verify=
 
     # run PT vae
     pt_vae = pipe.vae
-    pt_vae = pt_vae.cuda().half()
     pt_vae.eval()
 
     pt_input = torch.rand([batch_size, latent_channels, height, width]).cuda().half()
