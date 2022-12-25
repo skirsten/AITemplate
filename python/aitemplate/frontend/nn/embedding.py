@@ -45,9 +45,6 @@ class Embedding(Module):
         return self.weight.tensor()
 
 
-USE_CUDA = Target.current().name() == "cuda"
-
-
 class BertEmbeddings(Module):
     """Construct the embeddings from word, position and token_type embeddings."""
 
@@ -84,7 +81,7 @@ class BertEmbeddings(Module):
         token_type_ids,  # [B, S]
         position_ids,  # [B, S]
     ):
-        if USE_CUDA:
+        if Target.current().name() == "cuda":
             embeddings = ops.bert_embeddings()(
                 input_ids,
                 token_type_ids,

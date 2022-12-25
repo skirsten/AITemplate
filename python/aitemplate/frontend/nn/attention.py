@@ -27,8 +27,6 @@ from .parameter import Parameter
 
 # pylint: disable=C0103
 
-USE_CUDA = Target.current().name() == "cuda"
-
 
 class FlashAttention(Module):
     r"""FlashAttention provides an implementation for fused
@@ -148,7 +146,7 @@ class MultiheadAttention(Module):
                 shape=[mask_seq, num_heads, head_dim], dtype="float16"
             )
 
-        if USE_CUDA:
+        if Target.current().name() == "cuda":
             # on CUDA flash_attention needs packed QKV as input,
             # then do split + permute inside flash_attn
             # input: (B, S, H)
@@ -186,7 +184,7 @@ class MultiheadAttention(Module):
         return shape
 
     def qkv_proj(self, x):
-        if USE_CUDA:
+        if Target.current().name() == "cuda":
             if self.use_flash:
                 batch, seq, hidden = self.get_shape(x)
                 out = self.qkv(x)
@@ -203,11 +201,11 @@ class MultiheadAttention(Module):
     def attention(self, x):
         # fused attention
         # output: (B, Seqlen, num_heads, head_dim)
-        if USE_CUDA and self.use_flash:
+        if Target.current().name() == "cuda" and self.use_flash:
             # input(x): (B*seqlen, 3, num_heads, head_dim)
             # output: (B, Seqlen, num_heads, head_dim)
             return self.op(x, self.cu_length.tensor())
-        elif USE_CUDA and self.use_mem_eff:
+        elif Target.current().name() == "cuda" and self.use_mem_eff:
             (q, k, v) = ops.split()(x, 1, dim=0)
             _, b, num_heads, seqlen, d = self.get_shape(q)
             return self.op(
@@ -222,7 +220,7 @@ class MultiheadAttention(Module):
             # attn@v: (B, S, S) * (B, S, H) = (B, S, H) #RRR
             # reshape: (B, num_head, seqlen, head_dim)
             # permute: (B, Seqlen, num_heads, head_dim)
-            if USE_CUDA:
+            if Target.current().name() == "cuda":
                 scale = Tensor(
                     shape=[], dtype="float16", name="scale", value=self.scale
                 )

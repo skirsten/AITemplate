@@ -22,8 +22,6 @@ from .parameter import Parameter
 
 # pylint: disable=C0103
 
-USE_CUDA = Target.current().name() == "cuda"
-
 
 class Linear(Module):
     r"""Applies a linear transformation to the incoming data: :math:`y = xA^T + b`
@@ -88,7 +86,7 @@ class Linear(Module):
     def forward(self, *args):
         assert len(args) >= 1
         x = args[0]
-        if not USE_CUDA:
+        if not Target.current().name() == "cuda":
             shape = x._attrs["shape"]
             x = x if len(shape) == 2 else ops.reshape()(x, [-1, self.in_channels])
         if len(args) == 2:
