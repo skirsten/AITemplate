@@ -23,11 +23,12 @@ from pipeline_stable_diffusion_ait import StableDiffusionAITPipeline
 @click.command()
 @click.option("--width", default=512, help="Width of generated image")
 @click.option("--height", default=512, help="Height of generated image")
+@click.option("--seed", default=0, help="Seed")
 @click.option("--prompt", default="A vision of paradise, Unreal Engine", help="prompt")
 @click.option(
     "--benchmark", type=bool, default=False, help="run stable diffusion e2e benchmark"
 )
-def run(width, height, prompt, benchmark):
+def run(width, height, seed, prompt, benchmark):
 
     model_id = "stabilityai/stable-diffusion-2-1"
     scheduler = DPMSolverMultistepScheduler.from_pretrained(
@@ -41,8 +42,10 @@ def run(width, height, prompt, benchmark):
         torch_dtype=torch.float16,
     ).to("cuda")
 
+    generator = torch.Generator(device="cuda").manual_seed(seed)
+
     with torch.autocast("cuda"):
-        image = pipe(prompt, height, width).images[0]
+        image = pipe(prompt, height, width, generator=generator).images[0]
         if benchmark:
             t = benchmark_torch_function(10, pipe, prompt, height=height, width=width)
             print(f"sd e2e: {t} ms")
