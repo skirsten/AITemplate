@@ -12,8 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
-from aitemplate.testing import detect_target
-
+from ...backend.target import Target
 from ...compiler import ops
 from ...compiler.public import FuncEnum
 from .dropout import Dropout
@@ -46,7 +45,7 @@ class Embedding(Module):
         return self.weight.tensor()
 
 
-USE_CUDA = detect_target().name() == "cuda"
+USE_CUDA = Target.current().name() == "cuda"
 
 
 class BertEmbeddings(Module):

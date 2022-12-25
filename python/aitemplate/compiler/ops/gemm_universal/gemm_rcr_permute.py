@@ -21,12 +21,10 @@ When use for `linear`, need set A->Data, B->Weight
 
 from typing import Tuple
 
-from aitemplate.testing import detect_target
-
+from ....backend.target import Target
 from ...base import IntImm, IntVar, Tensor
 from ...tensor_accessor import TensorAccessor
 from ..common import reshape
-
 from . import gemm_rcr
 
 # pylint: disable=C0103,W0223,W0221,W0613
@@ -62,7 +60,7 @@ class gemm_rcr_permute(gemm_rcr):
 
         if self._attrs["layout"] == "Permute5D_20314" or (
             self._attrs["layout"] == "Permute5D_m2n3"
-            and detect_target().name() == "rocm"
+            and Target.current().name() == "rocm"
         ):
             m, n = output_shape
             t1, t2, t3 = self._attrs["shape"]
@@ -72,7 +70,7 @@ class gemm_rcr_permute(gemm_rcr):
             return reshape()(output, output_shape)
         elif (
             self._attrs["layout"] == "Permute4D_0213"
-            and detect_target().name() == "cuda"
+            and Target.current().name() == "cuda"
         ):
             m, n = output_shape
             t1, t2 = self._attrs["shape"]

@@ -24,8 +24,6 @@ from typing import Any, List, Union
 
 import jinja2
 
-from aitemplate.testing import detect_target
-
 from .... import backend
 from ....backend import registry
 from ....backend.target import Target
@@ -55,7 +53,7 @@ class group_norm(Operator):
         self._attrs["op"] = "groupnorm"
         self._attrs["num_groups"] = num_groups
         self._attrs["has_profiler"] = False
-        if detect_target().name() == "rocm":
+        if Target.current().name() == "rocm":
             self._attrs["has_profiler"] = True
         self._attrs["num_channels"] = num_channels
         self._attrs["workspace"] = 0

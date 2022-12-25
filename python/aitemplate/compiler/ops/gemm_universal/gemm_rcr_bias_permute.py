@@ -18,8 +18,7 @@ gemm rcr with bias + permute
 
 from typing import Tuple
 
-from aitemplate.testing import detect_target
-
+from ....backend.target import Target
 from ...base import Tensor
 from ...tensor_accessor import TensorAccessor
 from ..common import reshape
@@ -61,7 +60,7 @@ class gemm_rcr_bias_permute(gemm_rcr_bias):
         t1, t2, t3 = self._attrs["shape"]
         if (
             self._attrs["layout"] == "Permute5D_20314"
-            and detect_target().name() == "rocm"
+            and Target.current().name() == "rocm"
         ) or self._attrs["layout"] == "Permute5D_m3n2":
             output_shape = [t2, m.value() // t1 // t2, t3, t1, n.value() // t3]
         else:

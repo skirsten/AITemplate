@@ -17,11 +17,9 @@ Perform transformations on ops which support strided inputs / outputs.
 """
 import functools
 import logging
-
 from typing import List
 
-from aitemplate.testing import detect_target
-
+from ...backend.target import Target
 from ...utils import graph_utils, shape_utils
 from ..base import IntImm, Operator, Tensor
 from ..ops.tensor.slice_reshape_scatter import slice_reshape_scatter
@@ -459,7 +457,7 @@ def transform_strided_ops(
     """
     Add strided inputs / outputs to ops to avoid unnecessary data movement.
     """
-    if detect_target().name() == "cuda":
+    if Target.current().name() == "cuda":
         funcs = [
             # TODO: Remove these passes after cat supports input_accessors.
             _fuse_slices_concat_reshape_concat,

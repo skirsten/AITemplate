@@ -24,12 +24,9 @@ from typing import Dict, List, Union
 
 import jinja2
 
-from aitemplate.testing import detect_target
-
 from .... import backend
 from ....backend import registry
 from ....backend.target import Target
-
 from ....utils import logger
 from ....utils.tensor_utils import wrap_dim
 from ...base import DynamicProfileStrategy, ExecItem, IntVar, Operator, Tensor
@@ -72,7 +69,7 @@ class softmax(Operator):
         super().__init__()
         self._attrs["op"] = "softmax"
         self._attrs["has_profiler"] = False
-        if detect_target().name() == "rocm":
+        if Target.current().name() == "rocm":
             self._attrs["has_profiler"] = True
 
     def _infer_shapes(self, x: Tensor) -> List[IntVar]:

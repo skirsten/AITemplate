@@ -18,12 +18,10 @@ gemm rrr with bias + permute
 
 from typing import Tuple
 
-from aitemplate.testing import detect_target
-
+from ....backend.target import Target
 from ...base import Tensor
 from ...tensor_accessor import TensorAccessor
 from ..common import reshape
-
 from . import gemm_rrr_bias
 
 # pylint: disable=C0103,W0223,W0221,W0613
@@ -56,7 +54,7 @@ class gemm_rrr_bias_permute(gemm_rrr_bias):
             t1, t2, t3 = self._attrs["shape"]
             # TODO:currently ROCM only partitions M by 2 time and N by 1 time.
             # We should update ROCM to use the same output_shape
-            if detect_target().name() == "rocm":
+            if Target.current().name() == "rocm":
                 output_shape = [t2, m.value() // t1 // t2, t3, t1, n.value() // t3]
             else:
                 output_shape = [t2, m.value() // t1, t3, t1, n.value() // t3 // t2]

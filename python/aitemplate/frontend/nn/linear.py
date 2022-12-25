@@ -15,15 +15,14 @@
 """
 Linear module.
 """
-from aitemplate.testing import detect_target
-
+from ...backend.target import Target
 from ...compiler import ops
 from .module import Module
 from .parameter import Parameter
 
 # pylint: disable=C0103
 
-USE_CUDA = detect_target().name() == "cuda"
+USE_CUDA = Target.current().name() == "cuda"
 
 
 class Linear(Module):

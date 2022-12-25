@@ -23,8 +23,6 @@ from operator import itemgetter
 from typing import Any, List, Union
 
 import jinja2
-
-from aitemplate.testing import detect_target
 from aitemplate.utils import shape_utils
 
 from .... import backend
@@ -61,7 +59,7 @@ class layernorm(Operator):
         super().__init__()
         self._attrs["op"] = "layernorm"
         self._attrs["has_profiler"] = False
-        if detect_target().name() == "rocm":
+        if Target.current().name() == "rocm":
             self._attrs["has_profiler"] = True
         self._attrs["default_normalized_shape"] = normalized_shape
         self._attrs["normalized_shape"] = []
