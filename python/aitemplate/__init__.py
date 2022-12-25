@@ -14,13 +14,13 @@
 #
 import sys
 
-from . import backend, compiler, frontend, testing, utils
+from . import backend, compiler, frontend, utils
 from ._libinfo import __version__  # noqa
 
 if not (sys.version_info[0] >= 3 and sys.version_info[1] >= 7):
     PY3STATEMENT = "The minimal Python requirement is Python 3.7"
     raise Exception(PY3STATEMENT)
 
-__all__ = ["backend", "compiler", "frontend", "testing", "utils"]
+__all__ = ["backend", "compiler", "frontend", "utils"]
 
 root_logger = utils.logger.setup_logger(__name__)
