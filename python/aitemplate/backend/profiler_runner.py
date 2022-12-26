@@ -17,7 +17,7 @@ A subprocess based multiple GPUs runner for auto-tuning
 """
 from __future__ import annotations
 
-import concurrent
+import concurrent.futures
 import os
 
 import re
