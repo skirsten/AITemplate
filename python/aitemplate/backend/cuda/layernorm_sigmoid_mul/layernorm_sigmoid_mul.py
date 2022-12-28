@@ -61,7 +61,7 @@ namespace {
 
 FUNC_SIGNATURE = jinja2.Template(
     """
-cudaError_t {{func_name}}(void* output,
+void {{func_name}}(void* output,
                    void* input,
                    const void* gamma,
                    const void* beta,

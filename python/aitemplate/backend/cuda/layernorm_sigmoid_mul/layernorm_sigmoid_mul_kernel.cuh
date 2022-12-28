@@ -21,16 +21,17 @@
 
 // TODO: can this header be used in ROCM with minimal changes?
 #ifndef LAYER_NORM_CUDA_CHECK
-#define LAYER_NORM_CUDA_CHECK(expr)                                       \
-  do {                                                                    \
-    cudaError_t status = (expr);                                          \
-    if (status != cudaSuccess) {                                          \
-      std::cerr << "CUDA error: " << cudaGetErrorString(status) << " at " \
-                << __FILE__ << ": " << __LINE__ << std::endl;             \
-      return status;                                                      \
-    }                                                                     \
+#define LAYER_NORM_CUDA_CHECK(expr)                          \
+  do {                                                       \
+    cudaError_t status = (expr);                             \
+    if (status != cudaSuccess) {                             \
+      auto msg = std::string("Got error: ") +                \
+        cudaGetErrorString(status) +                         \
+        " at " + __FILE__ + ": " + std::to_string(__LINE__); \
+      throw std::runtime_error(msg);                         \
+    }                                                        \
   } while (0)
-#endif
+#endif // LAYER_NORM_CUDA_CHECK
 
 #ifndef LAYER_NORM_CUDA_CHECK_LAUNCH
 #define LAYER_NORM_CUDA_CHECK_LAUNCH() LAYER_NORM_CUDA_CHECK(cudaGetLastError())
@@ -562,7 +563,7 @@ __global__ void layernorm_sigmoid_mul(
 }
 
 template <typename T, typename T_ACC, bool FuseSigmoidMul>
-cudaError_t invokeLayernormSigmoidMul(
+void invokeLayernormSigmoidMul(
     T* output,
     const T* input,
     const T* gamma,
@@ -574,7 +575,7 @@ cudaError_t invokeLayernormSigmoidMul(
     const TensorAccessor& input_accessor,
     const TensorAccessor& output_accessor) {
   if (m == 0 || n == 0) {
-    return cudaSuccess;
+    return;
   }
   dim3 grid(m);
   dim3 block(n);
@@ -651,7 +652,7 @@ cudaError_t invokeLayernormSigmoidMul(
       LAYER_NORM_CUDA_CHECK_LAUNCH();
     }
   }
-  return cudaSuccess;
+  return;
 }
 
 //================================BatchLayerNorm====================================
@@ -1206,6 +1207,7 @@ void invokeBatchLayernormSigmoidMul(
               m,
               n,
               eps);
+      LAYER_NORM_CUDA_CHECK_LAUNCH();
     } else {
       batch_layernorm_sigmoid_mul_stored_locally<FuseSigmoidMul>
           <<<grid, block, 0, stream>>>(
@@ -1216,11 +1218,13 @@ void invokeBatchLayernormSigmoidMul(
               m,
               n,
               eps);
+      LAYER_NORM_CUDA_CHECK_LAUNCH();
     }
   } else if (n < 1024) {
     block.x = (block.x + 31) / 32 * 32;
     batch_layernorm_sigmoid_mul_stored_locally<T, T_ACC, FuseSigmoidMul>
         <<<grid, block, 0, stream>>>(output, input, gamma, beta, m, n, eps);
+    LAYER_NORM_CUDA_CHECK_LAUNCH();
   } else {
     CHECK(block.x >= 512);
     block.x = 512;
@@ -1233,9 +1237,11 @@ void invokeBatchLayernormSigmoidMul(
           m,
           n,
           eps);
+      LAYER_NORM_CUDA_CHECK_LAUNCH();
     } else {
       batch_layernorm_sigmoid_mul<T, T_ACC, FuseSigmoidMul>
           <<<grid, block, 0, stream>>>(output, input, gamma, beta, m, n, eps);
+      LAYER_NORM_CUDA_CHECK_LAUNCH();
     }
   }
 }
@@ -1644,7 +1650,7 @@ __global__ void group_layernorm_sigmoid_mul(
 
 // array size of output, input, gamma, beta, n: b (group size)
 template <typename T, typename T_ACC, bool FuseSigmoidMul, int NumInputs>
-cudaError_t invokeGroupLayernormSigmoidMul(
+void invokeGroupLayernormSigmoidMul(
     T* output[],
     T* input[],
     T* gamma[],
@@ -1662,7 +1668,7 @@ cudaError_t invokeGroupLayernormSigmoidMul(
   int max_n = *std::max_element(n, n + b);
   int min_n = *std::min_element(n, n + b);
   if (max_n == 0) {
-    return cudaSuccess;
+    return;
   }
 
   dim3 grid(b, m);
@@ -1753,7 +1759,7 @@ cudaError_t invokeGroupLayernormSigmoidMul(
       }
     }
   }
-  return cudaSuccess;
+  return;
 }
 
 #undef LAYER_NORM_CUDA_CHECK

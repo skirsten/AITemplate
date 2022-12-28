@@ -18,16 +18,17 @@
 #define FINAL_MASK 0xffffffff
 
 #ifndef GROUP_NORM_CUDA_CHECK
-#define GROUP_NORM_CUDA_CHECK(expr)                                       \
-  do {                                                                    \
-    cudaError_t status = (expr);                                          \
-    if (status != cudaSuccess) {                                          \
-      std::cerr << "CUDA error: " << cudaGetErrorString(status) << " at " \
-                << __FILE__ << ": " << __LINE__ << std::endl;             \
-      return status;                                                      \
-    }                                                                     \
+#define GROUP_NORM_CUDA_CHECK(expr)                          \
+  do {                                                       \
+    cudaError_t status = (expr);                             \
+    if (status != cudaSuccess) {                             \
+      auto msg = std::string("Got error: ") +                \
+        cudaGetErrorString(status) +                         \
+        " at " + __FILE__ + ": " + std::to_string(__LINE__); \
+      throw std::runtime_error(msg);                         \
+    }                                                        \
   } while (0)
-#endif
+#endif // GROUP_NORM_CUDA_CHECK
 
 #ifndef GROUP_NORM_CUDA_CHECK_LAUNCH
 #define GROUP_NORM_CUDA_CHECK_LAUNCH() GROUP_NORM_CUDA_CHECK(cudaGetLastError())
@@ -467,7 +468,7 @@ __global__ __launch_bounds__(NUM_THREADS) void group_norm_smem(
 }
 
 template <bool FuseSwish, int H, int W, int C, int num_groups>
-cudaError_t invokeWelfordGroupNorm_half(
+void invokeWelfordGroupNorm_half(
     half* output,
     half* input,
     half* gamma,
@@ -529,7 +530,6 @@ cudaError_t invokeWelfordGroupNorm_half(
   }
 
 #undef __HANDLE_ONE_VEC
-  return cudaSuccess;
 }
 
 template <typename SRC, typename DST, bool affine, bool FuseSwish>
@@ -847,7 +847,7 @@ void DispatchGroupNormForwardGpu(
 }
 
 template <bool FuseSwish, int H, int W, int C, int G>
-cudaError_t invokeGroupNorm_half(
+void invokeGroupNorm_half(
     half* output,
     half* input,
     half* gamma,
@@ -890,6 +890,7 @@ cudaError_t invokeGroupNorm_half(
       group_norm_smem<FuseSwish, H, W, C, C_G, ILP, BANK_CONFLICT, num_threads>
           <<<dim3(G, N), block, smem, stream>>>(
               input, output, gamma, beta, N, eps);
+      GROUP_NORM_CUDA_CHECK_LAUNCH();
     } else {
       DispatchGroupNormForwardGpu<half, float, FuseSwish>(
           stream,
@@ -922,10 +923,6 @@ cudaError_t invokeGroupNorm_half(
         reinterpret_cast<float*>(workspace + sizeof(float) * num_instances),
         channels_first);
   }
-
-  // GROUP_NORM_CUDA_CHECK_LAUNCH();
-  // TODO: last error is 0, but invoked error logging no error
-  return cudaGetLastError();
 }
 
 #endif /* GROUPNORM_KERNEL_CUH */

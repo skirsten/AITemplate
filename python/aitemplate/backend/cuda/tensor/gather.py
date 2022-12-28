@@ -57,7 +57,7 @@ KERNEL_SRC_TEMPLATE = jinja2.Template(
     cudaError_t status = (expr);                             \\
     if (status != cudaSuccess) {                             \\
       auto msg = std::string("Got error: ") +                \\
-       cudaGetErrorString(status) +                          \\
+        cudaGetErrorString(status) +                         \\
         " at " + __FILE__ + ": " + std::to_string(__LINE__); \\
       throw std::runtime_error(msg);                         \\
     }                                                        \\

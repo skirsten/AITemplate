@@ -26,7 +26,7 @@ from ...target import Target
 
 FUNC_SIGNATURE = jinja2.Template(
     """
-cudaError_t {{func_name}}(void* output,
+void {{func_name}}(void* output,
                           void* input,
                           void* gamma,
                           void* beta,

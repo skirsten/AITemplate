@@ -27,6 +27,7 @@ from ...backend_spec import CUDASpec
 FUNC_TEMPLATE = jinja2.Template(
     """
 #include <iostream>
+#include <string>
 #include <cuda_fp16.h>
 #include "cutlass/cutlass.h"
 #include "kernel_forward.h"
@@ -64,16 +65,15 @@ FUNC_TEMPLATE = jinja2.Template(
     constexpr int64_t kQueriesPerBlock = kIs64x64 ? 64 : 32;
     constexpr int64_t kKeysPerBlock = kIs64x64 ? 64 : 128;
     if (kIs64x64 && head_size_v > kKeysPerBlock) {
-        std::cerr << "WARNING: you will get better performance with `kIs64x64=false`";
+        throw std::runtime_error("WARNING: you will get better performance with `kIs64x64=false`");
     }
     if (kSingleValueIteration && head_size_v > kKeysPerBlock) {
-        std::cerr << "ERROR  : Use kSingleValueIteration to keep output in RF. " \
+        throw std::runtime_error("ERROR  : Use kSingleValueIteration to keep output in RF. " \
         "This requires to have `head_size <= kKeysPerBlock` " \
-        "but head_size_v=" << head_size_v << " and kKeysPerBlock=" << kKeysPerBlock << "";
-        return;
+        "but head_size_v=" + std::to_string(head_size_v) + " and kKeysPerBlock=" + std::to_string(kKeysPerBlock));
     }
     if (!kSingleValueIteration && head_size_v <= kKeysPerBlock) {
-        std::cerr << "WARNING: you will get better performance with `kSingleValueIteration=true` (keeps the output in RF rather than GMEM)";
+        throw std::runtime_error("WARNING: you will get better performance with `kSingleValueIteration=true` (keeps the output in RF rather than GMEM)");
     }
 
     using Attention = AttentionKernel<
@@ -129,18 +129,15 @@ FUNC_TEMPLATE = jinja2.Template(
       cudaFuncSetAttribute(kernel_fn, cudaFuncAttributeMaxDynamicSharedMemorySize, smem_bytes);
     }
     if (!Attention::check_supported(p)) {
-      std::cerr << "Kernel does not support these inputs" << std::endl;
-      return;
+      throw std::runtime_error("Kernel does not support these inputs");
     }
     kernel_fn<<<p.getBlocksGrid(), p.getThreadsGrid(), smem_bytes>>>(p);
 
-    cudaError_t err = cudaDeviceSynchronize();
+    cudaError_t err = cudaGetLastError();
 
     if (err != cudaSuccess)  {
-      std::cerr << "Kernel execution error: " << cudaGetErrorString(err);
-      return;
+      throw std::runtime_error("Kernel execution error: " + std::string(cudaGetErrorString(err)));
     }
-
 }
     """
 )
