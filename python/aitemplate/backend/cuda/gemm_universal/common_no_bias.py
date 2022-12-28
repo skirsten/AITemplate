@@ -42,7 +42,6 @@ SRC_TEMPLATE = jinja2.Template(
     if (error != cutlass::Status::kSuccess) {                                         \\
       auto msg = std::string("[") + __FILE__ + "] Got cutlass error: " +              \\
           cutlassGetStatusString(error) + " at: " + std::to_string(__LINE__);         \\
-      std::cerr << msg << std::endl;                                                  \\
       throw std::runtime_error(msg);                                                  \\
     }                                                                                 \\
   }
@@ -87,13 +86,13 @@ void {{function_name}} (
 
   {{exec_paths}}
   {% for idx in range(input_ndims) %}
-      std::cout << "input_ndims{{idx}}: " << *a_dim{{idx}} << std::endl;
+      std::cerr << "input_ndims{{idx}}: " << *a_dim{{idx}} << std::endl;
   {% endfor %}
   {% for idx in range(weight_ndims) %}
-      std::cout << "weight_ndims{{idx}}: " << *b_dim{{idx}} << std::endl;
+      std::cerr << "weight_ndims{{idx}}: " << *b_dim{{idx}} << std::endl;
   {% endfor %}
   {% for idx in range(input_ndims) %}
-      std::cout << "output_ndims{{idx}}: " << *c_dim{{idx}} << std::endl;
+      std::cerr << "output_ndims{{idx}}: " << *c_dim{{idx}} << std::endl;
   {% endfor %}
   throw std::runtime_error(
       "Unsupported workload for this {{function_name}} specialization."

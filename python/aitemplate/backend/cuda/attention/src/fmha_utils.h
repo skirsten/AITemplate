@@ -61,7 +61,6 @@
     if (status_ != cudaSuccess) {                                 \
       auto msg = std::string("CUDA error(") + __FILE__ + ":" +    \
           std::to_string(__LINE__) + cudaGetErrorString(status_); \
-      std::cerr << msg << std::endl;                              \
       throw std::runtime_error(msg);                              \
     }                                                             \
   } while (0)

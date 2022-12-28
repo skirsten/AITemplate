@@ -162,14 +162,12 @@ void bmm_rrr_k1_tanh_launcher(ElemT* a_ptr,
      auto msg = std::string("Got error: ") + std::to_string(M) + "%" +
        std::to_string(num_elems_in_float4) + " != 0 " +
        " at " + __FILE__ + ": " + std::to_string(__LINE__);
-     std::cerr << msg << std::endl;
      throw std::runtime_error(msg);
   }
   if (N % num_elems_in_float4 != 0) {
      auto msg = std::string("Got error: ") + std::to_string(N) + "%" +
        std::to_string(num_elems_in_float4) + " != 0 " +
        " at " + __FILE__ + ": " + std::to_string(__LINE__);
-     std::cerr << msg << std::endl;
      throw std::runtime_error(msg);
   }
   const int nthread = 256;

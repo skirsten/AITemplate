@@ -255,7 +255,6 @@ void gemm_rrr_small_nk_launcher(ElemT* a_ptr,
   } else {
     auto msg = std::string("Got error: unsupported elem type ") +
       " at " + __FILE__ + ": " + std::to_string(__LINE__);
-    std::cerr << msg << std::endl;
     throw std::runtime_error(msg);
   }
 }

@@ -93,7 +93,6 @@ namespace {
       auto msg = std::string("Got error: ") +                \\
         {{prefix}}GetErrorString(status) +                   \\
         " at " + __FILE__ + ": " + std::to_string(__LINE__); \\
-      std::cerr << msg << std::endl;                         \\
       throw std::runtime_error(msg);                         \\
     }                                                        \\
   } while (0)
